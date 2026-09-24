@@ -1,12 +1,200 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>My Website</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vaultbinder — Pokémon TCG Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    box-sizing:border-box;
+    --ink:#14171f; --ink2:#1c2029; --paper:#f3efe6; --paper-dim:#e7e1d2;
+    --gold:#c9a227; --gold-bright:#e0bd4a; --teal:#2e7d6f; --line:#343a48;
+    --text:#f3efe6; --text-dim:#9aa0b0;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  *,*::before,*::after{box-sizing:inherit}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){ }
+  }
+  .rule{border:none;border-top:1px solid var(--line);}
+  a{color:inherit}
+
+  /* Header */
+  header{position:sticky;top:0;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(20,23,31,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);}
+  .header-inner{max-width:1160px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;gap:24px;}
+  .brand{font-family:'Fraunces',serif;font-weight:600;font-size:1.35rem;letter-spacing:.01em;display:flex;align-items:center;gap:10px;white-space:nowrap;}
+  .brand .mark{width:22px;height:28px;border:1.5px solid var(--gold);border-radius:3px;position:relative;flex:none;}
+  .brand .mark::after{content:"";position:absolute;inset:4px;border:1px solid var(--gold);border-radius:1px;opacity:.55}
+  .search{flex:1;display:flex;align-items:center;background:var(--ink2);border:1px solid var(--line);border-radius:8px;padding:9px 14px;gap:8px;max-width:480px;}
+  .search input{background:none;border:none;color:var(--text);font-family:'Inter',sans-serif;font-size:.92rem;width:100%;outline:none;}
+  .search input::placeholder{color:var(--text-dim)}
+  .search svg{flex:none;opacity:.6}
+  .cart-btn{display:flex;align-items:center;gap:8px;background:none;border:1px solid var(--line);color:var(--text);font-family:'Inter',sans-serif;font-size:.88rem;font-weight:500;padding:9px 14px;border-radius:8px;cursor:pointer;white-space:nowrap;}
+  .cart-btn:hover{border-color:var(--gold);}
+  .cart-count{background:var(--gold);color:var(--ink);font-weight:700;font-size:.72rem;border-radius:20px;padding:1px 7px;min-width:18px;text-align:center;}
+
+  /* Hero */
+  .hero{max-width:1160px;margin:0 auto;padding:56px 24px 40px;display:grid;grid-template-columns:1.2fr .8fr;gap:40px;align-items:end;}
+  .hero h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(2rem,4vw,3rem);line-height:1.08;margin:0 0 14px;}
+  .hero p{color:var(--text-dim);font-size:1rem;line-height:1.6;margin:0;max-width:46ch;}
+  .hero-stats{display:flex;gap:28px;border-left:1px solid var(--line);padding-left:28px;}
+  .hero-stats div{display:flex;flex-direction:column;gap:2px;}
+  .hero-stats .n{font-family:'Fraunces',serif;font-size:1.7rem;color:var(--gold-bright);}
+  .hero-stats .l{font-size:.78rem;color:var(--text-dim);}
+
+  /* Filters */
+  .filters{max-width:1160px;margin:0 auto;padding:0 24px 28px;display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{border:1px solid var(--line);background:var(--ink2);color:var(--text-dim);font-size:.82rem;font-weight:500;padding:7px 14px;border-radius:20px;cursor:pointer;font-family:'Inter',sans-serif;transition:border-color .15s, color .15s;}
+  .chip.active{border-color:var(--gold);color:var(--gold-bright);}
+  .chip:hover{color:var(--text)}
+
+  /* Grid */
+  main{max-width:1160px;margin:0 auto;padding:0 24px 80px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:22px;}
+  .card{background:var(--ink2);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .15s, transform .15s;}
+  .card:hover{border-color:var(--gold);transform:translateY(-3px);}
+  .art{aspect-ratio:5/4;position:relative;display:flex;align-items:flex-end;padding:14px;overflow:hidden;}
+  .art .rarity-tag{position:absolute;top:10px;left:10px;font-size:.66rem;font-weight:700;letter-spacing:.03em;background:rgba(20,23,31,.55);color:var(--text);padding:3px 8px;border-radius:20px;border:1px solid rgba(255,255,255,.18);}
+  .art .name{position:relative;font-family:'Fraunces',serif;font-size:1.1rem;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.5);line-height:1.15;}
+  .card-body{padding:14px 14px 16px;display:flex;flex-direction:column;gap:6px;}
+  .set-line{font-size:.76rem;color:var(--text-dim);display:flex;justify-content:space-between;gap:8px;}
+  .price-row{display:flex;align-items:baseline;justify-content:space-between;margin-top:4px;}
+  .price{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--gold-bright);}
+  .cond{font-size:.72rem;color:var(--text-dim);border:1px solid var(--line);border-radius:5px;padding:2px 7px;}
+  .add-btn{margin-top:10px;background:var(--gold);color:var(--ink);border:none;border-radius:7px;padding:9px;font-family:'Inter',sans-serif;font-weight:700;font-size:.84rem;cursor:pointer;}
+  .add-btn:hover{background:var(--gold-bright);}
+  .add-btn.added{background:var(--teal);color:#fff;}
+
+  footer{border-top:1px solid var(--line);padding:28px 24px;text-align:center;color:var(--text-dim);font-size:.8rem;}
+
+  @media (max-width:760px){
+    .hero{grid-template-columns:1fr;gap:20px;}
+    .hero-stats{border-left:none;padding-left:0;border-top:1px solid var(--line);padding-top:16px;}
+    .search{display:none;}
+  }
+  :focus-visible{outline:2px solid var(--gold-bright);outline-offset:2px;}
+  @media (prefers-reduced-motion:reduce){ *{transition:none !important;} }
+</style>
 </head>
 <body>
-  <h1>Hello, World!</h1>
-  <p>This is my first website.</p>
+
+<header>
+  <div class="header-inner">
+    <div class="brand"><span class="mark"></span>Vaultbinder</div>
+    <div class="search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search cards, sets, or numbers">
+    </div>
+    <button class="cart-btn" id="cartBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      Cart <span class="cart-count" id="cartCount">0</span>
+    </button>
+  </div>
+</header>
+
+<section class="hero">
+  <div>
+    <h1>Singles, graded, and sealed — priced fairly, shipped carefully.</h1>
+    <p>Every card is scanned front and back before it ships. Prices track the live market, updated daily.</p>
+  </div>
+  <div class="hero-stats">
+    <div><span class="n">1,842</span><span class="l">cards listed</span></div>
+    <div><span class="n">4.9</span><span class="l">seller rating</span></div>
+    <div><span class="n">24h</span><span class="l">avg. ship time</span></div>
+  </div>
+</section>
+
+<div class="filters" id="filters">
+  <button class="chip active" data-f="all">All</button>
+  <button class="chip" data-f="holo">Holo Rare</button>
+  <button class="chip" data-f="ex">EX / V / VMAX</button>
+  <button class="chip" data-f="vintage">Vintage (WOTC)</button>
+  <button class="chip" data-f="graded">Graded</button>
+  <button class="chip" data-f="bulk">Near Mint Only</button>
+</div>
+
+<main>
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer>Vaultbinder — a demo storefront layout. Card names shown are for illustrative placement only.</footer>
+
+<script>
+  const cards = [
+    {name:"Flarewing", set:"Obsidian Vault · 042/198", rarity:"Holo Rare", tag:"holo", price:"18.50", cond:"NM", grad1:"#e8622c", grad2:"#7a1f0f"},
+    {name:"Tidalfin EX", set:"Deep Currents · 087/172", rarity:"Ultra Rare", tag:"ex", price:"64.00", cond:"NM", grad1:"#1f7a9c", grad2:"#0c2f3d"},
+    {name:"Groveleaf", set:"Base Set · 019/102", rarity:"Vintage Holo", tag:"vintage", price:"210.00", cond:"LP", grad1:"#3c8f4c", grad2:"#123317"},
+    {name:"Stormjaw VMAX", set:"Thundercrest · 154/185", rarity:"Secret Rare", tag:"ex", price:"142.00", cond:"NM", grad1:"#8248c9", grad2:"#2c1748"},
+    {name:"Cinderpaw", set:"Ember Path · 011/078", rarity:"Common", tag:"bulk", price:"0.75", cond:"NM", grad1:"#d98e2b", grad2:"#4a2c0a"},
+    {name:"Glacierfang", set:"Frostline · 099/145", rarity:"Holo Rare", tag:"holo", price:"22.00", cond:"NM", grad1:"#4da8c9", grad2:"#123845"},
+    {name:"Duskveil (PSA 9)", set:"Shadow Archive · 073/110", rarity:"Graded", tag:"graded", price:"385.00", cond:"PSA 9", grad1:"#5b4a8c", grad2:"#1a1430"},
+    {name:"Mossbell", set:"Base Set · 044/102", rarity:"Vintage", tag:"vintage", price:"12.00", cond:"MP", grad1:"#6fae4a", grad2:"#1e3312"},
+    {name:"Sunfeather EX", set:"Radiant Skies · 201/210", rarity:"Ultra Rare", tag:"ex", price:"58.00", cond:"NM", grad1:"#e0b23c", grad2:"#4a3a0c"},
+    {name:"Boulderhide", set:"Quarry Line · 066/135", rarity:"Common", tag:"bulk", price:"0.50", cond:"NM", grad1:"#8a7a5c", grad2:"#2c2418"},
+    {name:"Nightpetal (BGS 9.5)", set:"Shadow Archive · 088/110", rarity:"Graded", tag:"graded", price:"410.00", cond:"BGS 9.5", grad1:"#3a2b5c", grad2:"#120c22"},
+    {name:"Emberclaw", set:"Ember Path · 052/078", rarity:"Holo Rare", tag:"holo", price:"15.00", cond:"NM", grad1:"#c9432e", grad2:"#3d0f0a"}
+  ];
+
+  const grid = document.getElementById('grid');
+  const filters = document.getElementById('filters');
+  let cart = 0;
+
+  try {
+    const saved = localStorage.getItem('vb_cart_count');
+    if (saved) { cart = parseInt(saved,10) || 0; }
+  } catch(e) {}
+
+  function updateCartUI(){
+    document.getElementById('cartCount').textContent = cart;
+    try { localStorage.setItem('vb_cart_count', String(cart)); } catch(e) {}
+  }
+  updateCartUI();
+
+  function render(filter){
+    grid.innerHTML = '';
+    cards.filter(c => filter==='all' || c.tag===filter).forEach(c => {
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.innerHTML = `
+        <div class="art" style="background:linear-gradient(160deg, ${c.grad1}, ${c.grad2});">
+          <span class="rarity-tag">${c.rarity}</span>
+          <span class="name">${c.name}</span>
+        </div>
+        <div class="card-body">
+          <div class="set-line"><span>${c.set}</span></div>
+          <div class="price-row">
+            <span class="price">$${c.price}</span>
+            <span class="cond">${c.cond}</span>
+          </div>
+          <button class="add-btn">Add to cart</button>
+        </div>`;
+      const btn = el.querySelector('.add-btn');
+      btn.addEventListener('click', () => {
+        cart += 1;
+        updateCartUI();
+        btn.textContent = 'Added';
+        btn.classList.add('added');
+        setTimeout(() => { btn.textContent = 'Add to cart'; btn.classList.remove('added'); }, 900);
+      });
+      grid.appendChild(el);
+    });
+  }
+
+  filters.addEventListener('click', e => {
+    const btn = e.target.closest('.chip');
+    if (!btn) return;
+    filters.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    render(btn.dataset.f);
+  });
+
+  render('all');
+</script>
 </body>
 </html>
 
